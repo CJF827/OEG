@@ -297,7 +297,6 @@ def sparse_mx_to_torch_sparse_tensor(sparse_mx):
     shape = torch.Size(sparse_mx.shape)
     return torch.sparse.FloatTensor(indices, values, shape)
 
-# 1-K阶邻居节点
 def find_neighbors(adj, id_by_class, sample_id, k_hop):
     result_id_by_class = {}
     for key, value in id_by_class.items():

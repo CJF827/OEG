@@ -60,7 +60,6 @@ def load_npz_to_sparse_graph(file_name):
 valid_num_dic = {'Amazon_clothing': 17, 'Amazon_eletronics': 36, 'dblp': 27}
 
 def load_data(dataset_source):
-    # 初始化返回的变量
     # adj, features, labels, degree = None, None, None, None
     # class_list_train, class_list_valid, class_list_test, id_by_class = None, None, None, None
     

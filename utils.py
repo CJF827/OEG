@@ -367,6 +367,38 @@ def get_shortest_path_lengths(adj, id_support, aux_query):
 
     return shortest_path_lengths
 
+def task_generator_o(adj, id_by_class, class_list_train, n_way, k_shot, m_query, r, Outlier_num):
+    G = adj
+    support_set = set()
+    query_set = set()
+    selected_classes = random.sample(class_list_train, n_way)   
+    for cla in selected_classes:
+        temp = random.sample(id_by_class[cla], k_shot + m_query)
+        support_set.update(temp[:k_shot])
+        query_set.update(temp[k_shot:])
+    if G.is_sparse:
+        G = G.to_dense().numpy() 
+        G = nx.from_numpy_array(G) 
+    r_hop_neighbors = set()
+    for node in support_set:
+        neighbors = nx.single_source_shortest_path_length(G, node, cutoff=r)
+        for neighbor, dist in neighbors.items():
+            if dist > 0: 
+                r_hop_neighbors.add(neighbor)
+    filtered_neighbors = set()
+    for neighbor in r_hop_neighbors:
+        for train_class in class_list_train:
+            if neighbor in id_by_class[train_class]:
+                if neighbor not in support_set and train_class not in selected_classes:
+                    filtered_neighbors.add(neighbor)
+
+    if len(filtered_neighbors) < Outlier_num:
+        print("Not enough neighbors to select {} outliers. Only {} neighbors available.".format(Outlier_num,len(filtered_neighbors)))
+        return np.array(list(support_set)), np.array(list(query_set)),np.array(list(filtered_neighbors)), selected_classes 
+    outlier_set = random.sample(filtered_neighbors, Outlier_num)
+    return np.array(list(support_set)), np.array(list(query_set)), np.array(outlier_set), selected_classes 
+    
+
 def select_task_generator(adj, id_by_class, class_list, n_way, k_shot, m_query, aux_way, aux_num_per_way, Outlier_num):
     selected_classes = random.sample(class_list, n_way + aux_way)   
     id_support = []
@@ -400,33 +432,4 @@ def euclidean_dist(x, y):
 
     return torch.pow(x - y, 2).sum(2)  # N x M
 
-def select_task_generator_o(adj, id_by_class, class_list_train, n_way, k_shot, m_query, r, Outlier_num):
-    G = adj
-    support_set = set()
-    query_set = set()
-    selected_classes = random.sample(class_list_train, n_way)   
-    for cla in selected_classes:
-        temp = random.sample(id_by_class[cla], k_shot + m_query)
-        support_set.update(temp[:k_shot])
-        query_set.update(temp[k_shot:])
-    if G.is_sparse:
-        G = G.to_dense().numpy() 
-        G = nx.from_numpy_array(G) 
-    r_hop_neighbors = set()
-    for node in support_set:
-        neighbors = nx.single_source_shortest_path_length(G, node, cutoff=r)
-        for neighbor, dist in neighbors.items():
-            if dist > 0: 
-                r_hop_neighbors.add(neighbor)
-    filtered_neighbors = set()
-    for neighbor in r_hop_neighbors:
-        for train_class in class_list_train:
-            if neighbor in id_by_class[train_class]:
-                if neighbor not in support_set and train_class not in selected_classes:
-                    filtered_neighbors.add(neighbor)
 
-    if len(filtered_neighbors) < Outlier_num:
-        print("Not enough neighbors to select {} outliers. Only {} neighbors available.".format(Outlier_num,len(filtered_neighbors)))
-        return np.array(list(support_set)), np.array(list(query_set)),np.array(list(filtered_neighbors)), selected_classes 
-    outlier_set = random.sample(filtered_neighbors, Outlier_num)
-    return np.array(list(support_set)), np.array(list(query_set)), np.array(outlier_set), selected_classes 

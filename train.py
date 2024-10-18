@@ -95,7 +95,7 @@ def train(ID_class_selected, id_support, id_query, OOD_sample, n_way, k_shot, nu
     labels_new = torch.LongTensor([ID_class_selected.index(i) for i in labels[id_query]])
     if args.cuda:
         labels_new = labels_new.cuda()
-    output_OOD = -F.softmax(-dists_OOD, dim=1)
+    output_OOD = F.softmax(-dists_OOD, dim=1)
     loss_train = F.nll_loss(output, labels_new)
     loss_OOD = torch.tensor(0.,requires_grad = True)
     for i in range(num_OOD):

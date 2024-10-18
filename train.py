@@ -163,6 +163,8 @@ if __name__ == '__main__':
     meta_valid_num = 50
     alpha = args.alpha
     Outlier_num = args.outlier_num 
+    o_way= args.aux_way
+    o_num_way = args.aux_num_per_way
     settings = [(args.way, args.shot)]
 
     for n_way, k_shot in settings:
@@ -173,7 +175,7 @@ if __name__ == '__main__':
         meta_train_f1 = []
         for episode in range(args.episodes):#
             id_support, id_query, OOD_sample, ID_class_selected = \
-                select_task_generator_o(adj, id_by_class, class_list_train, n_way, k_shot, n_query, r, Outlier_num)
+                select_task_generator(adj, id_by_class, class_list_train, n_way, k_shot, n_query, o_way, o_num_way, Outlier_num)
             aux_num = Outlier_num
             acc_train, f1_train = train(ID_class_selected, id_support, id_query, OOD_sample, n_way, k_shot, aux_num)
             meta_train_acc.append(acc_train)
